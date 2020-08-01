@@ -107,8 +107,8 @@ local function get_package_info_and_add_dependency(query, dependecy_type)
     end
 
     query = query:gsub(' ', '_')
-    packages = search_package(query)
-    package = get_package_info(packages[1])
+    local packages = search_package(query)
+    local package = get_package_info(packages[1])
 
     add_dependency(package, dependecy_type)
 end
