@@ -1,6 +1,9 @@
 local json = require 'pubspec-assist-nvim.json'
 local base_url = 'https://pub.dartlang.org/api'
 
+local win
+local dependency_type
+
 local function split(str, sep)
     local fields = {}
     local pattern = string.format('([^%s]+)', sep)
@@ -100,7 +103,47 @@ local function add_dependency(new_package, dependecy_type)
     end
 end
 
-local function get_package_info_and_add_dependency(query, dependecy_type)
+local function set_mappings(buf)
+    local mappings = {['<cr>'] = 'select_package()', q = 'close_window()'}
+
+    for k, v in pairs(mappings) do
+        local opts = {nowait = true, noremap = true, silent = true}
+        local rhs = ':lua require"pubspec-assist-nvim".' .. v .. '<cr>'
+        vim.api.nvim_buf_set_keymap(buf, 'n', k, rhs, opts)
+    end
+end
+
+local function open_select_package_window(packages)
+    local buf = vim.api.nvim_create_buf(false, true)
+
+    local width = vim.api.nvim_get_option("columns")
+    local opts = {
+        style = "minimal",
+        relative = "editor",
+        width = width,
+        height = #packages,
+        row = width,
+        col = #packages
+    }
+
+    win = vim.api.nvim_open_win(buf, true, opts)
+    vim.api.nvim_win_set_option(win, 'cursorline', true)
+
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, packages)
+    set_mappings(buf)
+end
+
+local function close_window() vim.api.nvim_win_close(win, true) end
+
+local function select_package()
+    local package_name = vim.api.nvim_get_current_line()
+    close_window()
+
+    local package = get_package_info(package_name)
+    add_dependency(package, dependency_type)
+end
+
+local function get_package_info_and_add_dependency(query)
     if query:gsub('%s+', '') == '' then
         print('No package name specified')
         return
@@ -108,20 +151,22 @@ local function get_package_info_and_add_dependency(query, dependecy_type)
 
     query = query:gsub(' ', '_')
     local packages = search_package(query)
-    local package = get_package_info(packages[1])
-
-    add_dependency(package, dependecy_type)
+    open_select_package_window(packages)
 end
 
 local function pubspec_add_dependency(query)
-    get_package_info_and_add_dependency(query, 'dependencies')
+    dependency_type = 'dependencies'
+    get_package_info_and_add_dependency(query)
 end
 
 local function pubspec_add_dev_dependency(query)
-    get_package_info_and_add_dependency(query, 'dev_dependencies')
+    dependency_type = 'dev_dependencies'
+    get_package_info_and_add_dependency(query)
 end
 
 return {
     pubspec_add_dependency = pubspec_add_dependency,
-    pubspec_add_dev_dependency = pubspec_add_dev_dependency
+    pubspec_add_dev_dependency = pubspec_add_dev_dependency,
+    select_package = select_package,
+    close_window = close_window
 }
