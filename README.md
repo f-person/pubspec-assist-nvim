@@ -22,7 +22,4 @@ Plug 'f-person/pubspec-assist-nvim'
 ## Demo
 ![demo](assets/demo.gif?raw=true)
 
-## Plans
-Currently the plugin will pick the first search result, selection will be added soon.
-
 Inspired by [Pubspec Assist](https://github.com/jeroen-meijer/pubspec-assist) [VS Code extension](https://marketplace.visualstudio.com/items?itemName=jeroen-meijer.pubspec-assist)
