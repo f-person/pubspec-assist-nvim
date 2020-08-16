@@ -1,6 +1,6 @@
 local json = require 'pubspec-assist-nvim.json'
-local base_url = 'https://pub.dartlang.org/api'
 
+local base_url = 'https://pub.dartlang.org/api'
 local win
 local dependency_type
 
@@ -143,6 +143,25 @@ local function select_package()
     add_dependency(package, dependency_type)
 end
 
+-- returns a package if it is the only package in [packages] that matches
+-- the query, otherwise null
+local function smart_select_package(packages, query)
+    local match_index
+    local matches = 0
+    for index, package in ipairs(packages) do
+        if package:match(query) then
+            matches = matches + 1
+            match_index = index
+        end
+    end
+
+    if matches == 1 then
+        return packages[match_index]
+    else
+        return nil
+    end
+end
+
 local function get_package_info_and_add_dependency(query)
     if query:gsub('%s+', '') == '' then
         print('No package name specified')
@@ -151,7 +170,13 @@ local function get_package_info_and_add_dependency(query)
 
     query = query:gsub(' ', '_')
     local packages = search_package(query)
-    open_select_package_window(packages)
+    local package_name = smart_select_package(packages, query)
+    if package_name == nil then
+        open_select_package_window(packages)
+    else
+        local package = get_package_info(package_name)
+        add_dependency(package, dependency_type)
+    end
 end
 
 local function pubspec_add_dependency(query)
