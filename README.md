@@ -19,6 +19,9 @@ Plug 'f-person/pubspec-assist-nvim'
 :PubspecAssistAddDevDependency build runner
 ```
 
+## Demo
+![demo](assets/demo.gif?raw=true)
+
 ## Plans
 Currently the plugin will pick the first search result, selection will be added soon.
 
