@@ -75,31 +75,36 @@ local function add_dependency(new_package, dependecy_type)
         end
     end
 
-    if existing_package_line_index == -1 then
+    if existing_package_line_index ~= -1 then
+        local new_lines = {generate_dependency_string(new_package)}
+        vim.api.nvim_buf_set_lines(0, existing_package_line_index - 1,
+                                   existing_package_line_index, false, new_lines)
+    else
         local new_lines = {}
         local new_dependency_line_index
 
+        local dependency_string = generate_dependency_string(new_package)
         if dependecy_line_index == -1 then
             new_dependency_line_index = -1 -- end of the file
             table.insert(new_lines, '')
             table.insert(new_lines, dependecy_type_query)
+            table.insert(new_lines, dependency_string)
         else
+            table.insert(new_lines, dependency_string)
             for i = dependecy_line_index + 1, #lines do
-                if lines[i]:match('^  ') == nil and lines[i]:match('^#') == nil then
+                if lines[i] == '' or
+                    (lines[i]:match('^  %S+') and dependency_string < lines[i]) then
                     new_dependency_line_index = i - 1
                     break
+                elseif i == #lines then
+                    new_dependency_line_index = i
+                    break
                 end
-                if i == #lines then new_dependency_line_index = i end
             end
         end
-        table.insert(new_lines, generate_dependency_string(new_package))
 
         vim.api.nvim_buf_set_lines(0, new_dependency_line_index,
                                    new_dependency_line_index, false, new_lines)
-    else
-        local new_lines = {generate_dependency_string(new_package)}
-        vim.api.nvim_buf_set_lines(0, existing_package_line_index - 1,
-                                   existing_package_line_index, false, new_lines)
     end
 end
 
