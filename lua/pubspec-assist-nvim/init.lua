@@ -26,8 +26,9 @@ end
 
 -- returns a table with json
 local function http_get(url)
-    local response =
-        os.capture('curl -sb -H "Accept: application/json" ' .. url)
+    local response = os.capture(
+                         'curl -sb -H "Accept: application/json" -H "Accept-Encoding: utf8" ' ..
+                             url)
     return json.decode(response)
 end
 
